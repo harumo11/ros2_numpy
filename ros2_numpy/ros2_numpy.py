@@ -1,28 +1,9 @@
 # this script is a ROS2 node that listens to the /image_raw topic and converts the image to a numpy array
 
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 import cv2
 import numpy as np
-
-
-class NumpifyNode(Node):
-    def __init__(self):
-        super().__init__('numpify')
-        self.subscription = self.create_subscription(
-            CompressedImage, 'image_raw', self.listener_callback, qos_profile=qos_profile_sensor_data)
-        self.subscription
-
-    def listener_callback(self, msg: CompressedImage):
-        numpy_image = numpify(msg)
-        if numpy_image is None:
-            return
-        else:
-            cv2.imshow('image', numpy_image)
-            cv2.waitKey(1)
 
 
 class ToNumpyConverter():
