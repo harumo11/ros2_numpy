@@ -8,6 +8,9 @@ import numpy as np
 
 
 class ToNumpyConverter():
+    """
+    A converter class to transform ROS Image and CompressedImage messages to numpy arrays.
+    """
     name_to_dtypes = {
         "rgb8":    (np.uint8,  3),
         "rgba8":   (np.uint8,  4),
@@ -89,6 +92,9 @@ class ToNumpyConverter():
 
 
 class ToRosMsgConverter():
+    """
+    A converter class to transform numpy arrays to ROS Image and CompressedImage messages.
+    """
     @staticmethod
     def to_image(numpy_image: np.ndarray, encoding: str = 'bgr8', frame_id: str = 'camera') -> Image:
         """
@@ -135,6 +141,9 @@ class ToRosMsgConverter():
 
 
 def numpify(msg):
+    """
+    Convert ROS Image or CompressedImage message to numpy array.
+    """
     converter = ToNumpyConverter()
     if isinstance(msg, CompressedImage):
         return converter.from_compressed_image(msg)
@@ -145,6 +154,9 @@ def numpify(msg):
 
 
 def msgify(numpy_image, compress_type=''):
+    """
+    Convert numpy array to ROS Image or CompressedImage message.
+    """
     converter = ToRosMsgConverter()
     if compress_type == '':
         return converter.to_image(numpy_image)
