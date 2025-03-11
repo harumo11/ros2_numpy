@@ -35,7 +35,7 @@ class ImageListener(Node):
         cv.imshow('self image', self.image)
         cv.waitKey(1)
         # msg = msgify(self.image)
-        msg = msgify(self.image, compress_type='jpeg')
+        msg = msgify(self.image, compress_type='png')
         msg.header.stamp = self.get_clock().now().to_msg()
         self.publisher.publish(msg)
         print('Published image')
