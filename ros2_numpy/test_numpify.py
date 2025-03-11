@@ -9,11 +9,13 @@ import cv2 as cv
 class ImageListener(Node):
     def __init__(self):
         super().__init__('image_listener')
-        #self.subscription = self.create_subscription(Image, '/image_raw/compressed', self.listener_callback, 10)
-        self.subscription = self.create_subscription(CompressedImage, '/image_raw/compressed', self.listener_callback_compressed, 10)
+        # self.subscription = self.create_subscription(Image, '/image_raw/compressed', self.listener_callback, 10)
+        self.subscription = self.create_subscription(
+            CompressedImage, '/image_raw/compressed', self.listener_callback_compressed, 10)
         print('Subscribed to /image_raw/compressed')
-        #self.publisher = self.create_publisher(CompressedImage, '/my/image_raw/compressed', 10)
-        self.publisher = self.create_publisher(Image, '/my/image_raw', 10)
+        self.publisher = self.create_publisher(
+            CompressedImage, '/my/image_raw/compressed', 10)
+        # self.publisher = self.create_publisher(Image, '/my/image_raw', 10)
         self.timer = self.create_timer(1, self.timer_callback)
         self.image = None
 
@@ -32,7 +34,8 @@ class ImageListener(Node):
             return
         cv.imshow('self image', self.image)
         cv.waitKey(1)
-        msg = msgify(self.image)
+        # msg = msgify(self.image)
+        msg = msgify(self.image, compress_type='jpeg')
         msg.header.stamp = self.get_clock().now().to_msg()
         self.publisher.publish(msg)
         print('Published image')

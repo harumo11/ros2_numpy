@@ -9,8 +9,9 @@ import cv2 as cv
 class ImageListener(Node):
     def __init__(self):
         super().__init__('image_capture')
+        # self.subscription = self.create_subscription(Image, '/my/image_raw', self.listener_callback, 10)
         self.subscription = self.create_subscription(
-            Image, '/my/image_raw', self.listener_callback, 10)
+            Image, '/my/image_raw/compressed', self.listener_callback, 10)
         print('Subscribed to /image_raw/compressed')
 
     def listener_callback(self, msg: Image):

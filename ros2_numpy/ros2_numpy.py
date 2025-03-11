@@ -113,7 +113,8 @@ class ToRosMsgConverter():
         msg = CompressedImage()
         msg.format = "jpeg"
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-        ret, msg.data = cv2.imencode('.jpg', numpy_image, encode_param)
+        ret, data = cv2.imencode('.jpg', numpy_image, encode_param)
+        msg.data = data.tobytes()
         if ret == False:
             raise ValueError("Failed to encode image")
         return msg
@@ -126,7 +127,8 @@ class ToRosMsgConverter():
         msg = CompressedImage()
         msg.format = "png"
         encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), 9]
-        ret, msg.data = cv2.imencode('.png', numpy_image, encode_param)
+        ret, data = cv2.imencode('.png', numpy_image, encode_param)
+        msg.data = data.tobytes()
         if ret == False:
             raise ValueError("Failed to encode image")
         return msg
