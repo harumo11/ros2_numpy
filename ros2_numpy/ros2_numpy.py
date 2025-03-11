@@ -2,6 +2,7 @@
 
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
+import rclpy
 import cv2
 import numpy as np
 
@@ -87,11 +88,67 @@ class ToNumpyConverter():
         return image_np
 
 
+class ToRosMsgConverter():
+    @staticmethod
+    def to_image(numpy_image: np.ndarray, encoding: str = 'bgr8', frame_id: str = 'camera') -> Image:
+        """
+        Convert numpy.ndarray to sensor_msgs.msg.Image
+        """
+        msg = Image()
+        msg.height = numpy_image.shape[0]
+        msg.width = numpy_image.shape[1]
+        msg.encoding = encoding
+        msg.is_bigendian = 0
+        msg.step = numpy_image.shape[1] * numpy_image.shape[2]
+        msg.data = numpy_image.tobytes()
+        # msg.data = numpy_image.reshape(1)
+        msg.header.frame_id = frame_id
+        return msg
+
+    @staticmethod
+    def to_jpeg_image(numpy_image: np.ndarray, quality: int = 95) -> CompressedImage:
+        """
+        Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
+        """
+        msg = CompressedImage()
+        msg.format = "jpeg"
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+        ret, msg.data = cv2.imencode('.jpg', numpy_image, encode_param)
+        if ret == False:
+            raise ValueError("Failed to encode image")
+        return msg
+
+    @staticmethod
+    def to_png_image(numpy_image: np.ndarray) -> CompressedImage:
+        """
+        Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
+        """
+        msg = CompressedImage()
+        msg.format = "png"
+        encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), 9]
+        ret, msg.data = cv2.imencode('.png', numpy_image, encode_param)
+        if ret == False:
+            raise ValueError("Failed to encode image")
+        return msg
+
+
 def numpify(msg):
     converter = ToNumpyConverter()
     if isinstance(msg, CompressedImage):
         return converter.from_compressed_image(msg)
     elif isinstance(msg, Image):
         return converter.from_image(msg)
+    else:
+        return None
+
+
+def msgify(numpy_image, compress_type=''):
+    converter = ToRosMsgConverter()
+    if compress_type == '':
+        return converter.to_image(numpy_image)
+    elif compress_type == 'jpeg':
+        return converter.to_jpeg_image(numpy_image)
+    elif compress_type == 'png':
+        return converter.to_png_image(numpy_image)
     else:
         return None
