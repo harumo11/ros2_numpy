@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 import cv2
 import numpy as np
 
@@ -12,15 +13,16 @@ class NumpifyNode(Node):
     def __init__(self):
         super().__init__('numpify')
         self.subscription = self.create_subscription(
-            Image, 'image_raw', self.listener_callback, qos_profile=qos_profile_sensor_data)
+            CompressedImage, 'image_raw', self.listener_callback, qos_profile=qos_profile_sensor_data)
         self.subscription
 
-    def listener_callback(self, msg: Image):
+    def listener_callback(self, msg: CompressedImage):
         numpy_image = numpify(msg)
-        print(numpy_image.shape)
-        print(f'encoding: {msg.encoding}')
-        cv2.imshow('image', numpy_image)
-        cv2.waitKey(1)
+        if numpy_image is None:
+            return
+        else:
+            cv2.imshow('image', numpy_image)
+            cv2.waitKey(1)
 
 
 class ToNumpyConverter():
@@ -77,11 +79,8 @@ class ToNumpyConverter():
         "64FC4":   (np.float64, 4)
     }
 
-    def __init__(self):
-        pass
-
     @staticmethod
-    def to_numpy(msg: Image):
+    def from_image(msg: Image):
         """
         Convert sensor_msgs.msg.Image to numpy.ndarray
         """
@@ -97,7 +96,21 @@ class ToNumpyConverter():
 
         return numpy_image
 
+    @staticmethod
+    def from_compressed_image(msg: CompressedImage):
+        """
+        Convert sensor_msgs.msg.CompressedImage to numpy.ndarray
+        """
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        return image_np
 
-def numpify(msg: Image):
+
+def numpify(msg):
     converter = ToNumpyConverter()
-    return converter.to_numpy(msg)
+    if isinstance(msg, CompressedImage):
+        return converter.from_compressed_image(msg)
+    elif isinstance(msg, Image):
+        return converter.from_image(msg)
+    else:
+        return None
