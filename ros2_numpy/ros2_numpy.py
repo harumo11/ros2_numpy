@@ -115,6 +115,7 @@ class ToRosMsgConverter():
     def to_jpeg_image(numpy_image: np.ndarray, quality: int = 95) -> CompressedImage:
         """
         Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
+        cv2.IMWRITE_JPEG_QUALITY: 0-100. A higher value means a higher quality and larger size.
         """
         msg = CompressedImage()
         msg.format = "jpeg"
@@ -129,10 +130,11 @@ class ToRosMsgConverter():
     def to_png_image(numpy_image: np.ndarray) -> CompressedImage:
         """
         Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
+        cv2.IMWRITE_PNG_COMPRESSION: 0-9. A higher value means a smaller size and longer compression time.
         """
         msg = CompressedImage()
         msg.format = "png"
-        encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), 9]
+        encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), 3]
         ret, data = cv2.imencode('.png', numpy_image, encode_param)
         msg.data = data.tobytes()
         if ret == False:
