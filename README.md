@@ -4,6 +4,20 @@
 
 ## Usage
 
+### import
+
+```python
+from ros2_numpy import numpify, msgify
+```
+
+or
+
+```python
+import ros2_numpy
+```
+
+
+
 #### ROS2 -> CV2
 
 ```python
