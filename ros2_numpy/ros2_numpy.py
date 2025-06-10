@@ -87,8 +87,9 @@ class ToNumpyConverter():
         Convert sensor_msgs.msg.CompressedImage to numpy.ndarray
         """
         np_arr = np.frombuffer(msg.data, np.uint8)
-        image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        return image_np
+        numpy_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        return numpy_image 
 
 
 class ToRosMsgConverter():
@@ -127,14 +128,14 @@ class ToRosMsgConverter():
         return msg
 
     @staticmethod
-    def to_png_image(numpy_image: np.ndarray) -> CompressedImage:
+    def to_png_image(numpy_image: np.ndarray, compression: int = 3) -> CompressedImage:
         """
         Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
         cv2.IMWRITE_PNG_COMPRESSION: 0-9. A higher value means a smaller size and longer compression time.
         """
         msg = CompressedImage()
         msg.format = "png"
-        encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), 3]
+        encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), compression]
         ret, data = cv2.imencode('.png', numpy_image, encode_param)
         msg.data = data.tobytes()
         if ret == False:
@@ -142,6 +143,7 @@ class ToRosMsgConverter():
         return msg
 
 
+# utility functions
 def numpify(msg):
     """
     Convert ROS Image or CompressedImage message to numpy array.
@@ -155,14 +157,14 @@ def numpify(msg):
         return None
 
 
-def msgify(numpy_image, compress_type=''):
+def msgify(numpy_image, compress_type='jpeg'):
     """
     Convert numpy array to ROS Image or CompressedImage message.
     """
     converter = ToRosMsgConverter()
     if compress_type == '':
         return converter.to_image(numpy_image)
-    elif compress_type == 'jpeg':
+    elif compress_type == 'jpeg' or compress_type == 'jpg':
         return converter.to_jpeg_image(numpy_image)
     elif compress_type == 'png':
         return converter.to_png_image(numpy_image)
