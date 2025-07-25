@@ -2,12 +2,14 @@
 
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
-import rclpy
 import cv2
 import numpy as np
+import dataclasses
+from PIL import Image as PILImage
 
 
-class ToNumpyConverter():
+@dataclasses.dataclass
+class ImageTypes:
     """
     A converter class to transform ROS Image and CompressedImage messages to numpy arrays.
     """
@@ -64,109 +66,162 @@ class ToNumpyConverter():
         "64FC4":   (np.float64, 4)
     }
 
-    @staticmethod
-    def from_image(msg: Image):
-        """
-        Convert sensor_msgs.msg.Image to numpy.ndarray
-        """
-        # get dtype and channel from encoding
-        if msg.encoding in ToNumpyConverter.name_to_dtypes:
-            dtype, channel = ToNumpyConverter.name_to_dtypes[msg.encoding]
-        else:
-            raise ValueError(f"Unsupported encoding: {msg.encoding}")
 
-        # convert to numpy.ndarray
-        numpy_image = np.frombuffer(msg.data, dtype=dtype)
-        numpy_image = numpy_image.reshape((msg.height, msg.width, channel))
-
-        return numpy_image
-
-    @staticmethod
-    def from_compressed_image(msg: CompressedImage):
-        """
-        Convert sensor_msgs.msg.CompressedImage to numpy.ndarray
-        """
-        np_arr = np.frombuffer(msg.data, np.uint8)
-        numpy_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-        return numpy_image 
-
-
-class ToRosMsgConverter():
+def from_msg_to_cvimg(msg: Image):
     """
-    A converter class to transform numpy arrays to ROS Image and CompressedImage messages.
+    Convert sensor_msgs.msg.Image to numpy.ndarray
     """
-    @staticmethod
-    def to_image(numpy_image: np.ndarray, encoding: str = 'bgr8', frame_id: str = 'camera') -> Image:
-        """
-        Convert numpy.ndarray to sensor_msgs.msg.Image
-        """
-        msg = Image()
-        msg.height = numpy_image.shape[0]
-        msg.width = numpy_image.shape[1]
-        msg.encoding = encoding
-        msg.is_bigendian = 0
-        msg.step = numpy_image.shape[1] * numpy_image.shape[2]
-        msg.data = numpy_image.tobytes()
-        # msg.data = numpy_image.reshape(1)
-        msg.header.frame_id = frame_id
-        return msg
+    # get dtype and channel from encoding
+    if msg.encoding in ImageTypes.name_to_dtypes:
+        dtype, channel = ImageTypes.name_to_dtypes[msg.encoding]
+    else:
+        raise ValueError(f"Unsupported encoding: {msg.encoding}")
 
-    @staticmethod
-    def to_jpeg_image(numpy_image: np.ndarray, quality: int = 95) -> CompressedImage:
-        """
-        Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
-        cv2.IMWRITE_JPEG_QUALITY: 0-100. A higher value means a higher quality and larger size.
-        """
-        msg = CompressedImage()
-        msg.format = "jpeg"
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-        ret, data = cv2.imencode('.jpg', numpy_image, encode_param)
-        msg.data = data.tobytes()
-        if ret == False:
-            raise ValueError("Failed to encode image")
-        return msg
+    # convert to numpy.ndarray
+    numpy_image = np.frombuffer(msg.data, dtype=dtype)
+    numpy_image = numpy_image.reshape((msg.height, msg.width, channel))
 
-    @staticmethod
-    def to_png_image(numpy_image: np.ndarray, compression: int = 3) -> CompressedImage:
-        """
-        Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
-        cv2.IMWRITE_PNG_COMPRESSION: 0-9. A higher value means a smaller size and longer compression time.
-        """
-        msg = CompressedImage()
-        msg.format = "png"
-        encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), compression]
-        ret, data = cv2.imencode('.png', numpy_image, encode_param)
-        msg.data = data.tobytes()
-        if ret == False:
-            raise ValueError("Failed to encode image")
-        return msg
+    return numpy_image
 
 
-# utility functions
+def from_compressed_msg_to_cvimg(msg: CompressedImage):
+    """
+    Convert sensor_msgs.msg.CompressedImage to numpy.ndarray
+    """
+    np_arr = np.frombuffer(msg.data, np.uint8)
+    numpy_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    return numpy_image 
+
+
+def from_cvimg_to_raw_img_msg(numpy_image: np.ndarray, encoding: str = 'bgr8', frame_id: str = 'camera') -> Image:
+    """
+    Convert numpy.ndarray to sensor_msgs.msg.Image
+    """
+    msg = Image()
+    msg.height = numpy_image.shape[0]
+    msg.width = numpy_image.shape[1]
+    msg.encoding = encoding
+    msg.is_bigendian = 0
+    msg.step = numpy_image.shape[1] * numpy_image.shape[2]
+    msg.data = numpy_image.tobytes()
+    msg.header.frame_id = frame_id
+    return msg
+
+
+def from_cvimg_to_jpg_msg(numpy_image: np.ndarray, jpg_quality: int = 95) -> CompressedImage:
+    """
+    Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
+    cv2.IMWRITE_JPEG_QUALITY: 0-100. A higher value means a higher quality and larger size.
+    """
+    if jpg_quality < 0 or jpg_quality > 100:
+        raise ValueError("Quality must be between 0 and 100")
+
+    msg = CompressedImage()
+    msg.format = "jpeg"
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality]
+    ret, data = cv2.imencode('.jpg', numpy_image, encode_param)
+    msg.data = data.tobytes()
+    if ret == False:
+        raise ValueError("Failed to encode image")
+    return msg
+
+
+def from_cvimg_to_png_msg(numpy_image: np.ndarray, png_compression: int = 3) -> CompressedImage:
+    """
+    Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
+    cv2.IMWRITE_PNG_COMPRESSION: 0-9. A higher value means a smaller size and longer compression time.
+    """
+    if png_compression < 0 or png_compression > 9:
+        raise ValueError("Compression must be between 0 and 9")
+
+    msg = CompressedImage()
+    msg.format = "png"
+    encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), png_compression]
+    ret, data = cv2.imencode('.png', numpy_image, encode_param)
+    msg.data = data.tobytes()
+    if ret == False:
+        raise ValueError("Failed to encode image")
+    return msg
+
+
 def numpify(msg):
     """
     Convert ROS Image or CompressedImage message to numpy array.
+
+    Parameters
+    ----------
+    msg : sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage
+        The input ROS message to convert.
+
+    Returns
+    -------
+    numpy.ndarray
+
     """
-    converter = ToNumpyConverter()
     if isinstance(msg, CompressedImage):
-        return converter.from_compressed_image(msg)
+        return from_compressed_msg_to_cvimg(msg)
     elif isinstance(msg, Image):
-        return converter.from_image(msg)
+        return from_msg_to_cvimg(msg)
     else:
-        return None
+        raise ValueError("Input must be a sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage")
 
 
-def msgify(numpy_image, compress_type='jpeg'):
+def pilify(msg):
+    """
+    Convert ROS Image or CompressedImage message to PIL Image.
+
+    Parameters
+    ----------
+    msg : sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage
+        The input ROS message to convert.
+
+    Returns
+    -------
+    PIL.Image.Image
+
+    """
+    numpy_image = numpify(msg)
+    return PILImage.fromarray(numpy_image)
+
+
+def msgify(image, compress_type='jpeg', **kwargs):
     """
     Convert numpy array to ROS Image or CompressedImage message.
+
+    Parameters
+    ----------
+    image : numpy.ndarray or PIL.Image
+        The input image to convert.
+    compress_type : str, optional
+        The type of compression to use. Options are 'jpeg', 'png', or '' for raw image.
+        Default is 'jpeg'.
+    jpg_quality : int, optional
+        The quality of the JPEG compression. Must be between 0 and 100.
+        Default is 95.
+    png_compression : int, optional
+        The compression level for PNG. Must be between 0 and 9.
+        Default is 3.
+
+    Returns
+    -------
+    sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage
+        The converted ROS message.
     """
-    converter = ToRosMsgConverter()
+    # check if image is a numpy or PIL Image
+    if isinstance(image, PILImage.Image):
+        numpy_image = np.array(image)
+    elif isinstance(image, np.ndarray):
+        numpy_image = image
+    else:
+        raise ValueError("Input must be a numpy array or PIL Image")
+
+    # make a image message
     if compress_type == '':
-        return converter.to_image(numpy_image)
+        return from_cvimg_to_raw_img_msg(numpy_image)
     elif compress_type == 'jpeg' or compress_type == 'jpg':
-        return converter.to_jpeg_image(numpy_image)
+        return from_cvimg_to_jpg_msg(numpy_image, **kwargs)
     elif compress_type == 'png':
-        return converter.to_png_image(numpy_image)
+        return from_cvimg_to_png_msg(numpy_image, **kwargs)
     else:
         return None
