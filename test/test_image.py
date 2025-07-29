@@ -52,7 +52,7 @@ def test_image_transport():
     executor.add_node(sub_node)
 
     try:
-        for _ in range(20):  # Run for up to 10 seconds
+        for _ in range(20):  # Run for a maximum of 10 seconds, or less if the message is received earlier
             executor.spin_once(timeout_sec=0.5)
             if sub_node.received_image is not None:
                 break
