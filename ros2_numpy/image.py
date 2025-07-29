@@ -224,4 +224,4 @@ def msgify(image, compress_type='jpeg', **kwargs):
     elif compress_type == 'png':
         return from_cvimg_to_png_msg(numpy_image, **kwargs)
     else:
-        return None
+        raise ValueError(f"Unsupported compress_type '{compress_type}'. Supported types are '', 'jpeg', 'jpg', and 'png'.")
