@@ -122,7 +122,7 @@ def from_cvimg_to_jpg_msg(numpy_image: np.ndarray, jpg_quality: int = 95) -> Com
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality]
     ret, data = cv2.imencode('.jpg', numpy_image, encode_param)
     msg.data = data.tobytes()
-    if ret == False:
+    if ret is False:
         raise ValueError("Failed to encode image")
     return msg
 
@@ -140,7 +140,7 @@ def from_cvimg_to_png_msg(numpy_image: np.ndarray, png_compression: int = 3) -> 
     encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), png_compression]
     ret, data = cv2.imencode('.png', numpy_image, encode_param)
     msg.data = data.tobytes()
-    if ret == False:
+    if ret is False:
         raise ValueError("Failed to encode image")
     return msg
 
@@ -214,7 +214,7 @@ def msgify(image, compress_type='jpeg', **kwargs):
     elif isinstance(image, np.ndarray):
         numpy_image = image
     else:
-        raise ValueError("Input must be a numpy array or PIL Image")
+        raise ValueError(f'Input must be a numpy array or PIL Image. Got {type(image)} instead.')
 
     # make a image message
     if compress_type == '':
