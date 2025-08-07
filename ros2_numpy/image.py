@@ -13,57 +13,56 @@ class ImageTypes:
     """
     A converter class to transform ROS Image and CompressedImage messages to numpy arrays.
     """
+
     name_to_dtypes = {
-        "rgb8":    (np.uint8,  3),
-        "rgba8":   (np.uint8,  4),
-        "rgb16":   (np.uint16, 3),
-        "rgba16":  (np.uint16, 4),
-        "bgr8":    (np.uint8,  3),
-        "bgra8":   (np.uint8,  4),
-        "bgr16":   (np.uint16, 3),
-        "bgra16":  (np.uint16, 4),
-        "mono8":   (np.uint8,  1),
-        "mono16":  (np.uint16, 1),
-
+        "rgb8": (np.uint8, 3),
+        "rgba8": (np.uint8, 4),
+        "rgb16": (np.uint16, 3),
+        "rgba16": (np.uint16, 4),
+        "bgr8": (np.uint8, 3),
+        "bgra8": (np.uint8, 4),
+        "bgr16": (np.uint16, 3),
+        "bgra16": (np.uint16, 4),
+        "mono8": (np.uint8, 1),
+        "mono16": (np.uint16, 1),
         # for bayer image (based on cv_bridge.cpp)
-        "bayer_rggb8":	(np.uint8,  1),
-        "bayer_bggr8":	(np.uint8,  1),
-        "bayer_gbrg8":	(np.uint8,  1),
-        "bayer_grbg8":	(np.uint8,  1),
-        "bayer_rggb16":	(np.uint16, 1),
-        "bayer_bggr16":	(np.uint16, 1),
-        "bayer_gbrg16":	(np.uint16, 1),
-        "bayer_grbg16":	(np.uint16, 1),
-
+        "bayer_rggb8": (np.uint8, 1),
+        "bayer_bggr8": (np.uint8, 1),
+        "bayer_gbrg8": (np.uint8, 1),
+        "bayer_grbg8": (np.uint8, 1),
+        "bayer_rggb16": (np.uint16, 1),
+        "bayer_bggr16": (np.uint16, 1),
+        "bayer_gbrg16": (np.uint16, 1),
+        "bayer_grbg16": (np.uint16, 1),
         # OpenCV CvMat types
-        "8UC1":    (np.uint8,   1),
-        "8UC2":    (np.uint8,   2),
-        "8UC3":    (np.uint8,   3),
-        "8UC4":    (np.uint8,   4),
-        "8SC1":    (np.int8,    1),
-        "8SC2":    (np.int8,    2),
-        "8SC3":    (np.int8,    3),
-        "8SC4":    (np.int8,    4),
-        "16UC1":   (np.uint16,   1),
-        "16UC2":   (np.uint16,   2),
-        "16UC3":   (np.uint16,   3),
-        "16UC4":   (np.uint16,   4),
-        "16SC1":   (np.int16,  1),
-        "16SC2":   (np.int16,  2),
-        "16SC3":   (np.int16,  3),
-        "16SC4":   (np.int16,  4),
-        "32SC1":   (np.int32,   1),
-        "32SC2":   (np.int32,   2),
-        "32SC3":   (np.int32,   3),
-        "32SC4":   (np.int32,   4),
-        "32FC1":   (np.float32, 1),
-        "32FC2":   (np.float32, 2),
-        "32FC3":   (np.float32, 3),
-        "32FC4":   (np.float32, 4),
-        "64FC1":   (np.float64, 1),
-        "64FC2":   (np.float64, 2),
-        "64FC3":   (np.float64, 3),
-        "64FC4":   (np.float64, 4)
+        "8UC1": (np.uint8, 1),
+        "8UC2": (np.uint8, 2),
+        "8UC3": (np.uint8, 3),
+        "8UC4": (np.uint8, 4),
+        "8SC1": (np.int8, 1),
+        "8SC2": (np.int8, 2),
+        "8SC3": (np.int8, 3),
+        "8SC4": (np.int8, 4),
+        "16UC1": (np.uint16, 1),
+        "16UC2": (np.uint16, 2),
+        "16UC3": (np.uint16, 3),
+        "16UC4": (np.uint16, 4),
+        "16SC1": (np.int16, 1),
+        "16SC2": (np.int16, 2),
+        "16SC3": (np.int16, 3),
+        "16SC4": (np.int16, 4),
+        "32SC1": (np.int32, 1),
+        "32SC2": (np.int32, 2),
+        "32SC3": (np.int32, 3),
+        "32SC4": (np.int32, 4),
+        "32FC1": (np.float32, 1),
+        "32FC2": (np.float32, 2),
+        "32FC3": (np.float32, 3),
+        "32FC4": (np.float32, 4),
+        "64FC1": (np.float64, 1),
+        "64FC2": (np.float64, 2),
+        "64FC3": (np.float64, 3),
+        "64FC4": (np.float64, 4),
     }
 
 
@@ -91,10 +90,12 @@ def from_compressed_msg_to_cvimg(msg: CompressedImage):
     np_arr = np.frombuffer(msg.data, np.uint8)
     numpy_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    return numpy_image 
+    return numpy_image
 
 
-def from_cvimg_to_raw_img_msg(numpy_image: np.ndarray, encoding: str = 'bgr8', frame_id: str = 'camera') -> Image:
+def from_cvimg_to_raw_img_msg(
+    numpy_image: np.ndarray, encoding: str = "bgr8", frame_id: str = "camera"
+) -> Image:
     """
     Convert numpy.ndarray to sensor_msgs.msg.Image
     """
@@ -109,7 +110,9 @@ def from_cvimg_to_raw_img_msg(numpy_image: np.ndarray, encoding: str = 'bgr8', f
     return msg
 
 
-def from_cvimg_to_jpg_msg(numpy_image: np.ndarray, jpg_quality: int = 95) -> CompressedImage:
+def from_cvimg_to_jpg_msg(
+    numpy_image: np.ndarray, jpg_quality: int = 95
+) -> CompressedImage:
     """
     Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
     cv2.IMWRITE_JPEG_QUALITY: 0-100. A higher value means a higher quality and larger size.
@@ -120,14 +123,16 @@ def from_cvimg_to_jpg_msg(numpy_image: np.ndarray, jpg_quality: int = 95) -> Com
     msg = CompressedImage()
     msg.format = "jpeg"
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), jpg_quality]
-    ret, data = cv2.imencode('.jpg', numpy_image, encode_param)
+    ret, data = cv2.imencode(".jpg", numpy_image, encode_param)
     msg.data = data.tobytes()
     if ret is False:
         raise ValueError("Failed to encode image")
     return msg
 
 
-def from_cvimg_to_png_msg(numpy_image: np.ndarray, png_compression: int = 3) -> CompressedImage:
+def from_cvimg_to_png_msg(
+    numpy_image: np.ndarray, png_compression: int = 3
+) -> CompressedImage:
     """
     Convert numpy.ndarray to sensor_msgs.msg.CompressedImage
     cv2.IMWRITE_PNG_COMPRESSION: 0-9. A higher value means a smaller size and longer compression time.
@@ -138,7 +143,7 @@ def from_cvimg_to_png_msg(numpy_image: np.ndarray, png_compression: int = 3) -> 
     msg = CompressedImage()
     msg.format = "png"
     encode_param = [int(cv2.IMWRITE_PNG_COMPRESSION), png_compression]
-    ret, data = cv2.imencode('.png', numpy_image, encode_param)
+    ret, data = cv2.imencode(".png", numpy_image, encode_param)
     msg.data = data.tobytes()
     if ret is False:
         raise ValueError("Failed to encode image")
@@ -164,10 +169,12 @@ def numpify(msg):
     elif isinstance(msg, Image):
         return from_msg_to_cvimg(msg)
     else:
-        raise ValueError("Input must be a sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage")
+        raise ValueError(
+            "Input must be a sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage"
+        )
 
 
-def pilify(msg):
+def pilfy(msg):
     """
     Convert ROS Image or CompressedImage message to PIL Image.
 
@@ -185,7 +192,7 @@ def pilify(msg):
     return PILImage.fromarray(numpy_image)
 
 
-def msgify(image, compress_type='jpeg', **kwargs):
+def msgfy(image, compress_type="jpeg", **kwargs):
     """
     Convert numpy array to ROS Image or CompressedImage message.
 
@@ -214,14 +221,18 @@ def msgify(image, compress_type='jpeg', **kwargs):
     elif isinstance(image, np.ndarray):
         numpy_image = image
     else:
-        raise ValueError(f'Input must be a numpy array or PIL Image. Got {type(image)} instead.')
+        raise ValueError(
+            f"Input must be a numpy array or PIL Image. Got {type(image)} instead."
+        )
 
     # make a image message
-    if compress_type == '':
+    if compress_type == "":
         return from_cvimg_to_raw_img_msg(numpy_image)
-    elif compress_type == 'jpeg' or compress_type == 'jpg':
+    elif compress_type == "jpeg" or compress_type == "jpg":
         return from_cvimg_to_jpg_msg(numpy_image, **kwargs)
-    elif compress_type == 'png':
+    elif compress_type == "png":
         return from_cvimg_to_png_msg(numpy_image, **kwargs)
     else:
-        raise ValueError(f"Unsupported compress_type '{compress_type}'. Supported types are '', 'jpeg', 'jpg', and 'png'.")
+        raise ValueError(
+            f"Unsupported compress_type '{compress_type}'. Supported types are '', 'jpeg', 'jpg', and 'png'."
+        )

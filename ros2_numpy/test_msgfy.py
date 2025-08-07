@@ -1,4 +1,4 @@
-from ros2_numpy import numpify, msgify
+from ros2_numpy import numpify, msgfy
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from rclpy.node import Node
@@ -8,20 +8,21 @@ import cv2 as cv
 
 class ImageListener(Node):
     def __init__(self):
-        super().__init__('image_capture')
+        super().__init__("image_capture")
         # self.subscription = self.create_subscription(Image, '/my/image_raw', self.listener_callback, 10)
         self.subscription = self.create_subscription(
-            Image, '/my/image_raw/compressed', self.listener_callback, 10)
-        print('Subscribed to /image_raw/compressed')
+            Image, "/my/image_raw/compressed", self.listener_callback, 10
+        )
+        print("Subscribed to /image_raw/compressed")
 
     def listener_callback(self, msg: Image):
-        print('Received image')
+        print("Received image")
         numpy_image = numpify(msg)
         self.image = numpy_image
         if numpy_image is None:
-            print('Failed to convert image')
+            print("Failed to convert image")
             return
-        cv.imshow('image', numpy_image)
+        cv.imshow("image", numpy_image)
         cv.waitKey(1)
 
 
@@ -32,5 +33,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
