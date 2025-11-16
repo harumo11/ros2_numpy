@@ -192,7 +192,7 @@ def pilfy(msg):
     return PILImage.fromarray(numpy_image)
 
 
-def msgfy(image, compress_type="jpeg", **kwargs):
+def msgfy(image, compress_type='', **kwargs):
     """
     Convert numpy array to ROS Image or CompressedImage message.
 
@@ -202,7 +202,7 @@ def msgfy(image, compress_type="jpeg", **kwargs):
         The input image to convert.
     compress_type : str, optional
         The type of compression to use. Options are 'jpeg', 'png', or '' for raw image.
-        Default is 'jpeg'.
+        Default is ''.
     jpg_quality : int, optional
         The quality of the JPEG compression. Must be between 0 and 100.
         Default is 95.
