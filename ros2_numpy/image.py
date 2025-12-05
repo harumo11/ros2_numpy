@@ -227,7 +227,7 @@ def msgfy(image, compress_type='', **kwargs):
 
     # make a image message
     if compress_type == "":
-        return from_cvimg_to_raw_img_msg(numpy_image)
+        return from_cvimg_to_raw_img_msg(numpy_image, **kwargs)
     elif compress_type == "jpeg" or compress_type == "jpg":
         return from_cvimg_to_jpg_msg(numpy_image, **kwargs)
     elif compress_type == "png":
