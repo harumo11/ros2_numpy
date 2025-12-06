@@ -83,18 +83,43 @@ def from_msg_to_cvimg(msg: Image):
     return numpy_image
 
 
-def from_compressed_msg_to_cvimg(msg: CompressedImage):
+def from_compressed_msg_to_cvimg(msg: CompressedImage) -> np.ndarray:
     """
     Convert sensor_msgs.msg.CompressedImage to numpy.ndarray
     """
     np_arr = np.frombuffer(msg.data, np.uint8)
     numpy_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    if numpy_image is None:
+        raise ValueError("Failed to decode compressed image")
 
     return numpy_image
 
 
+def detect_encoding(numpy_image: np.ndarray) -> str:
+    # detect the encoding of a image such as 'bgr8', 'rgb8', 'mono8', etc.
+
+    # bit
+    dtype = numpy_image.dtype
+
+    # number of channels
+    channel = 0
+    if len(numpy_image.shape) == 2:
+        channel = 1 # grayscale
+    elif len(numpy_image.shape) == 3:
+        channel = numpy_image.shape[2] # color channels
+    else:
+        raise ValueError(f'{channel} is unsupported number of channels. Only 1, 2 or, 3 channels are supported.')
+
+    # retrieve from ImageTypes using dtype and channel
+    for name, (dt, ch) in ImageTypes.name_to_dtypes.items():
+        if dt == dtype and ch == channel:
+            return name
+
+    raise ValueError(f'Unsupported combination of dtype {dtype} and channel {channel}.')
+
+
 def from_cvimg_to_raw_img_msg(
-    numpy_image: np.ndarray, encoding: str = "bgr8", frame_id: str = "camera"
+    numpy_image: np.ndarray, encoding: str = '', frame_id: str = "camera"
 ) -> Image:
     """
     Convert numpy.ndarray to sensor_msgs.msg.Image
@@ -102,9 +127,9 @@ def from_cvimg_to_raw_img_msg(
     msg = Image()
     msg.height = numpy_image.shape[0]
     msg.width = numpy_image.shape[1]
-    msg.encoding = encoding
+    msg.encoding = detect_encoding(numpy_image) if encoding == "" else encoding
     msg.is_bigendian = 0
-    msg.step = numpy_image.shape[1] * numpy_image.shape[2]
+    msg.step = numpy_image.size
     msg.data = numpy_image.tobytes()
     msg.header.frame_id = frame_id
     return msg
@@ -150,7 +175,7 @@ def from_cvimg_to_png_msg(
     return msg
 
 
-def numpify(msg):
+def numpify(msg) -> np.ndarray:
     """
     Convert ROS Image or CompressedImage message to numpy array.
 
@@ -226,11 +251,11 @@ def msgfy(image, compress_type='', **kwargs):
         )
 
     # make a image message
-    if compress_type == "":
+    if compress_type == '':
         return from_cvimg_to_raw_img_msg(numpy_image, **kwargs)
-    elif compress_type == "jpeg" or compress_type == "jpg":
+    elif compress_type == 'jpeg' or compress_type == 'jpg':
         return from_cvimg_to_jpg_msg(numpy_image, **kwargs)
-    elif compress_type == "png":
+    elif compress_type == 'png':
         return from_cvimg_to_png_msg(numpy_image, **kwargs)
     else:
         raise ValueError(
