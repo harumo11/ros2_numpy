@@ -17,7 +17,6 @@ setup(
     maintainer_email='s_harumo@hotmail.co.jp',
     description='TODO: Package description',
     license='MIT',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
         ],
