@@ -20,7 +20,7 @@ class ImagePublisher(Node):
     def publish_image(self):
         if not self.published:
             self.get_logger().info(f'type of image: {type(self.image)}')
-            msg = ros2_image.msgify(self.image, compress_type='')
+            msg = ros2_image.msgfy(self.image, compress_type='')
             self.publisher_.publish(msg)
             self.published = True
 
@@ -81,7 +81,7 @@ class CompressedImagePublisher(Node):
         self.published = False
     def publish_image(self):
         if not self.published:
-            msg = ros2_image.msgify(self.image, compress_type='png')
+            msg = ros2_image.msgfy(self.image, compress_type='png')
             self.publisher_.publish(msg)
             self.published = True
 

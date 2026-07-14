@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from sensor_msgs.msg import Image, CompressedImage
 from PIL import Image as PILImage
-from typing import Optional, Tuple, Dict, Union, Type
+from typing import Tuple, Dict, Union, Type
 
 # Mapping from encoding name to (numpy dtype, number of channels)
 NAME_TO_DTYPES: Dict[str, Tuple[Type, int]] = {
@@ -92,7 +92,7 @@ def detect_encoding(numpy_image: np.ndarray) -> str:
         raise ValueError(f"Unsupported combination of dtype {dtype} and channels {channels}.")
 
 
-def from_msg_to_cvimg(msg: Image) -> np.ndarray:
+def from_raw_img_msg_to_cvimg(msg: Image) -> np.ndarray:
     """
     Convert sensor_msgs.msg.Image to numpy.ndarray.
 
@@ -120,7 +120,7 @@ def from_msg_to_cvimg(msg: Image) -> np.ndarray:
     return numpy_image
 
 
-def from_compressed_msg_to_cvimg(msg: CompressedImage) -> np.ndarray:
+def from_compressed_img_msg_to_cvimg(msg: CompressedImage) -> np.ndarray:
     """
     Convert sensor_msgs.msg.CompressedImage to numpy.ndarray.
 
@@ -146,7 +146,7 @@ def from_cvimg_to_raw_img_msg(
 
     Args:
         numpy_image (np.ndarray): Input image.
-        encoding (str): Target encoding. If empty, it is detected automatically.
+        encoding (str): Target encoding such as a bgr8 or 8UC3. If empty, it is detected automatically.
         frame_id (str): Frame ID for the header.
 
     Returns:
@@ -240,9 +240,9 @@ def numpify(msg: Union[Image, CompressedImage]) -> np.ndarray:
         np.ndarray: Converted numpy array.
     """
     if isinstance(msg, CompressedImage):
-        return from_compressed_msg_to_cvimg(msg)
+        return from_compressed_img_msg_to_cvimg(msg)
     elif isinstance(msg, Image):
-        return from_msg_to_cvimg(msg)
+        return from_raw_img_msg_to_cvimg(msg)
     else:
         raise ValueError(
             "Input must be a sensor_msgs.msg.Image or sensor_msgs.msg.CompressedImage"
